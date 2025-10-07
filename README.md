@@ -48,7 +48,7 @@ npm install
 
 **Start the server:**
 ```bash
-npm start
+npm run dev
 ```
 
 ## 📡 API Endpoints
