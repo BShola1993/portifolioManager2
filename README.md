@@ -39,13 +39,7 @@ The system uses a modular monolith architecture — clear separation of services
 git clone 
 ```
 
-### 🐳 Run with Docker
-
-
-The server will be accessible at:  
-[http://localhost:8000](http://localhost:8000)
-
-### 🚀 Run
+### 🚀 Run the project
 
 **Install dependencies:**
 ```bash
@@ -56,7 +50,6 @@ npm install
 ```bash
 npm start
 ```
-
 
 ## 📡 API Endpoints
 
