@@ -60,10 +60,6 @@ npm run dev
 | POST   | /full-report  | Get personalized report               |
 
 
-## 🤝 Contributing
-We welcome contributions! Feel free to submit a pull request or open an issue.
-
-
 ## 📄 License
 MIT License
 
