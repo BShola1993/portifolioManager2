@@ -87,21 +87,22 @@ export default function LandingPage() {
     }
 
     setIsLoading(true);
+
+    // Request account access
     const accounts = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
+
     let chainId = await window.ethereum.request({ method: "eth_chainId" });
 
-    // ✅ Ensure Sepolia network (chainId = 0xaa36a7)
+    // Switch to Sepolia if not already
     if (chainId !== "0xaa36a7") {
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId: "0xaa36a7" }],
         });
-        chainId = "0xaa36a7";
       } catch (switchError) {
-        // If Sepolia not added in MetaMask
         if (switchError.code === 4902) {
           await window.ethereum.request({
             method: "wallet_addEthereumChain",
@@ -114,7 +115,9 @@ export default function LandingPage() {
                   symbol: "ETH",
                   decimals: 18,
                 },
-                rpcUrls: ["https://sepolia.infura.io/v3/"],
+                rpcUrls: [
+                  "https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID"
+                ],
                 blockExplorerUrls: ["https://sepolia.etherscan.io"],
               },
             ],
@@ -128,8 +131,8 @@ export default function LandingPage() {
     setAccount(accounts[0]);
     setError("");
   } catch (err) {
-    console.error(err);
-    setError("Failed to connect wallet. Please try again.");
+    console.error("MetaMask connection error:", err);
+    setError(err.message || "Failed to connect wallet. Please try again.");
   } finally {
     setIsLoading(false);
   }
