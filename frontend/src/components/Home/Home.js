@@ -13,6 +13,9 @@ import logoImage from '../../assets/images/Logo.png';
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [account, setAccount] = useState(null); // ✅ Added for wallet
+  const [isLoading, setIsLoading] = useState(false); // ✅ Added for UX
+  const [error, setError] = useState(""); // ✅ Added for feedback
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +37,16 @@ export default function LandingPage() {
         setIsAuthenticated(false);
       }
     }
+
+    // ✅ Watch for wallet/account change
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        setAccount(accounts[0] || null);
+      });
+      window.ethereum.on("chainChanged", () => {
+        window.location.reload();
+      });
+    }
   }, []);
 
   const handleLoginSuccess = (token) => {
@@ -48,23 +61,81 @@ export default function LandingPage() {
   };
 
   const goToProfile = () => {
-  const token = localStorage.getItem('jwt_token');
-  if (!token) {
-    setShowLogin(true);
-    return;
-  }
-  navigate('/profile');
-};
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+      setShowLogin(true);
+      return;
+    }
+    navigate('/profile');
+  };
 
   const goToReport = () => {
-  const token = localStorage.getItem('jwt_token');
-  if (!token) {
-    setShowLogin(true);
-    return;
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+      setShowLogin(true);
+      return;
+    }
+    navigate('/report');
+  };
+
+  // ✅ Add wallet connect logic
+  const connectWallet = async () => {
+  try {
+    if (!window.ethereum) {
+      setError("MetaMask not detected. Please install it.");
+      return;
+    }
+
+    setIsLoading(true);
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts",
+    });
+    let chainId = await window.ethereum.request({ method: "eth_chainId" });
+
+    // ✅ Ensure Sepolia network (chainId = 0xaa36a7)
+    if (chainId !== "0xaa36a7") {
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: "0xaa36a7" }],
+        });
+        chainId = "0xaa36a7";
+      } catch (switchError) {
+        // If Sepolia not added in MetaMask
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: "0xaa36a7",
+                chainName: "Sepolia Test Network",
+                nativeCurrency: {
+                  name: "SepoliaETH",
+                  symbol: "ETH",
+                  decimals: 18,
+                },
+                rpcUrls: ["https://sepolia.infura.io/v3/"],
+                blockExplorerUrls: ["https://sepolia.etherscan.io"],
+              },
+            ],
+          });
+        } else {
+          throw switchError;
+        }
+      }
+    }
+
+    setAccount(accounts[0]);
+    setError("");
+  } catch (err) {
+    console.error(err);
+    setError("Failed to connect wallet. Please try again.");
+  } finally {
+    setIsLoading(false);
   }
-  navigate('/report');
 };
 
+  
   return (
     <div className="landing-page">
       <header className="header">
@@ -102,8 +173,21 @@ export default function LandingPage() {
           <h2>Your Financial Future Starts Here</h2>
           <p>Upload your crypto wallet address and get a professional, personalized financial report – crafted as if by your own private banker.</p>
           <p>Let's shape a brighter financial future, together. Let us help you make the right decisions with tailored insights you can trust.</p>
-          <button className="btn" onClick={goToReport}>Get Your Report</button>
+
+          {/* ✅ Replaced "Get Your Report" with dynamic wallet logic */}
+          <button className="btn" onClick={account ? goToReport : connectWallet} disabled={isLoading}>
+            {isLoading ? "Please wait..." : account ? "Get Your Report" : "Connect Wallet"}
+          </button>
+
+          {/* ✅ Optional feedback text */}
+          {error && <p style={{ color: "red", fontSize: "0.9rem" }}>{error}</p>}
+          {account && (
+            <p style={{ fontSize: "0.9rem", color: "gray" }}>
+              ✅ Connected: {account.slice(0, 6)}...{account.slice(-4)}
+            </p>
+          )}
         </div>
+
         <div className="hero-image">
           <img src={accountingOfficeImage} alt="Private Banker" />
         </div>
