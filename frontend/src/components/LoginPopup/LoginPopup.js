@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import './LoginPopup.css';
 import '../Popup/Popup.css';
 import RegisterPopup from "../RegisterPopup/RegisterPopup";
@@ -10,20 +10,32 @@ export default function LoginPopup({ onClose, onSuccess }) {
     const [showRegister, setShowRegister] = useState(false);
 
     const handleLogin = async () => {
+        setError("");
+
         try {
-            const response = await fetch("http://localhost:8000/auth/login", {
+            const response = await fetch("http://localhost:5000/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
             });
 
+            // Check if server reachable
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || "Login failed");
+            }
+
             const data = await response.json();
-            if (response.ok && data.data && data.data.message) {
-                onSuccess(data.data.message);
+
+            // Adjusted to match a proper backend response
+            if (data && data.token) {
+                localStorage.setItem("token", data.token);
+                onSuccess(`Welcome back, ${data.user?.username || username}!`);
             } else {
-                setError(data.data?.message || "Login failed");
+                throw new Error(data.message || "Invalid server response");
             }
         } catch (err) {
+            console.error("❌ Login error:", err);
             setError("Server error: " + err.message);
         }
     };
@@ -45,24 +57,24 @@ export default function LoginPopup({ onClose, onSuccess }) {
             <div className="popup">
                 <button className="close-button" onClick={onClose}>×</button>
                 <h2>Login</h2>
+
                 <input
                     type="text"
                     placeholder="Username"
                     value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    onChange={(e) => setUsername(e.target.value)}
                 />
                 <input
                     type="password"
                     placeholder="Password"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
-                {error && <p className="error">{error}</p>}
-                <button className="btn" onClick={handleLogin}>Login</button>
-                <button className="btn" onClick={() => setShowRegister(true)}>
-                    Register
-                </button>
 
+                {error && <p className="error">{error}</p>}
+
+                <button className="btn" onClick={handleLogin}>Login</button>
+                <button className="btn" onClick={() => setShowRegister(true)}>Register</button>
             </div>
         </div>
     );

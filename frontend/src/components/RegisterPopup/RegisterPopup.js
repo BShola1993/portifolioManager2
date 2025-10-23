@@ -14,7 +14,6 @@ const questions = [
   "How often do you review your portfolio?",
   "How open are you to portfolio suggestions?"
 ];
-
 const RegisterPopup = ({ onClose }) => {
   const [step, setStep] = useState(0);
   const [isSuccess, setIsSuccess] = useState(false);

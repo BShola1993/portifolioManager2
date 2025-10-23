@@ -29,7 +29,6 @@ function ProfilePage() {
       [preference]: value
     }));
   };
-
   const handleSavePreferences = async () => {
     try {
       const response = await fetch('/api/auth/updatePreferences', {

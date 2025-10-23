@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 .landing-page {
   background-color: #1B1F24;
   color: white;
@@ -13,8 +12,13 @@
 
 .logo {
   height: 4em;
-
+  background:#F9B64D;
+  border-radius: 6px; 
   cursor: pointer;
+  height: 76px;
+}
+.logo:hover{
+  background:#FBBF24;
 }
 
 .header {
@@ -34,7 +38,7 @@
   list-style: none;
 }
 
-.nav-item {
+.nav-item{
   background-color: #F9B64D;
   color: black;
   padding: 8px 16px;

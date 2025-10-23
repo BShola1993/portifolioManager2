@@ -1,4 +1,4 @@
-const User = require('../../models/userModel');
+const User = require('../../models/User');
 
 async function getUserPreferencesByUsername(username) {
     try {
