@@ -4,37 +4,22 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   const atlasURI = process.env.MONGO_URI;
   const localURI = 'mongodb://127.0.0.1:27017/futureBanking';
+  const currentURI = atlasURI || localURI;
 
-  let currentURI = atlasURI || localURI;
+  try {
+    console.log(`🔗 Connecting to MongoDB: ${currentURI}`);
+    await mongoose.connect(currentURI); // modern mongoose, no extra options
+    console.log('✅ MongoDB connected successfully');
+  } catch (error) {
+    console.error('❌ MongoDB connection error:', error.message);
 
-  const connectWithRetry = async () => {
-    try {
-      console.log(`🔗 Trying to connect to MongoDB using URI: ${currentURI}`);
-      const conn = await mongoose.connect(currentURI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
-      console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    } catch (error) {
-      console.error(`❌ MongoDB Connection Error (${currentURI}): ${error.message}`);
-
-      // fallback to local MongoDB if Atlas fails
-      if (currentURI === atlasURI) {
-        console.log('⚙️ Retrying with local MongoDB...');
-        currentURI = localURI;
-        connectWithRetry();
-      } else {
-        console.error('❌ Local MongoDB connection failed, retrying in 10s...');
-        setTimeout(connectWithRetry, 10000);
-      }
-    }
-  };
-
-  connectWithRetry();
+    // Retry after 10s instead of exiting
+    setTimeout(connectDB, 10000);
+  }
 
   mongoose.connection.on('disconnected', () => {
-    console.warn('⚠️ MongoDB disconnected! Retrying connection...');
-    setTimeout(connectWithRetry, 5000);
+    console.warn('⚠️ MongoDB disconnected. Reconnecting...');
+    connectDB();
   });
 };
 
