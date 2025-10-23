@@ -8,7 +8,20 @@ const connectDB = require('./database/db');
 const app = express();
 
 // ✅ Middleware
-app.use(cors());
+const cors = require('cors');
+
+const allowedOrigins = [
+  'https://futurebanking-frontend.vercel.app', // ✅ your live Vercel domain
+  'http://localhost:5173',                     // ✅ for local React dev
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+;
 app.use(express.json());
 
 // ✅ Connect to MongoDB
