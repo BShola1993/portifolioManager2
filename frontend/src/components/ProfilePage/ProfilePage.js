@@ -31,7 +31,7 @@ function ProfilePage() {
   };
   const handleSavePreferences = async () => {
     try {
-      const response = await fetch('/api/auth/updatePreferences', {
+      const response = await fetch('https://localhost/api/auth/updatePreferences', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +114,6 @@ function ProfilePage() {
           }}
         />
       )}
-
       {showDeletePopup && (
         <DeletePopup
           onClose={() => setShowDeletePopup(false)}

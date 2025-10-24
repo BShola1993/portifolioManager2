@@ -13,7 +13,7 @@ export default function UpdatePasswordPopup({ onClose, onSuccess }) {
         }
 
         try {
-            const response = await fetch("http://localhost:8000/auth/updatePassword", {
+            const response = await fetch("http://localhost:5000/auth/updatePassword", {
                 method: "PATCH",
                 headers: { 
                     "Content-Type": "application/json",

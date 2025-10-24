@@ -124,17 +124,22 @@ export default function LandingPage(){
       return;
     }
     setIsLoading(true);
+
     const message = "Login to Lukman the defi";
     await new Promise((r) => setTimeout(r, 300)); // short delay
     const signature = await window.ethereum.request({
       method: "personal_sign",
       params: [message, account]
     });
-   const res = await fetch("http://localhost:5000/api/auth/web3login", {
+
+    // ✅ Dynamic API base URL
+    const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+    const res = await fetch(`${API_BASE}/api/auth/web3login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address: account, signature }),
     });
+
     const data = await res.json();
     if (data.token) {
       handleLoginSuccess(data.token);
@@ -149,6 +154,7 @@ export default function LandingPage(){
     setIsLoading(false);
   }
 };
+
   return (
     <div className="landing-page">
       <header className="header">
