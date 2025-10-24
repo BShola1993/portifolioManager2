@@ -8,8 +8,6 @@ const connectDB = require('./database/db');
 const app = express();
 
 // ✅ Middleware
-const cors = require('cors');
-
 const allowedOrigins = [
   'https://futurebanking-frontend.vercel.app', // ✅ your live Vercel domain
   'http://localhost:5173',                     // ✅ for local React dev
@@ -78,7 +76,6 @@ app.use((err, req, res, next) => {
   console.error('🔥 Server error:', err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
-
 // ✅ Start the server
 app.listen(PORT, () => {
   console.log(`✅ Server is running on: http://localhost:${PORT}`);
