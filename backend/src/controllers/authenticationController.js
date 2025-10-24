@@ -7,14 +7,17 @@ const {
   successJsonResponse,
 } = require('../utils/jsonResponses/jsonResponses');
 
-/**
- * Authenticates user and generates JWT token
- * Assumes req.body contains valid username and password strings
- */
+const jwt = require('jsonwebtoken');
+const User = require('../models/User'); // adjust if your model path is different
+const { ethers } = require('ethers');
+
+// ---------------------------
+// Username/Password Controllers
+// ---------------------------
+
 const loginController = async (req, res) => {
   try {
     const token = await authenticationService.login(req.body.username, req.body.password);
-
     return res.json(successJsonResponse(token));
   } catch (error) {
     if (error.message === 'Invalid credentials') return res.json(unauthorizedJsonResponse(error.message));
@@ -22,10 +25,6 @@ const loginController = async (req, res) => {
   }
 };
 
-/**
- * Creates new user account with investment profile
- * Assumes req.body contains all required user fields and preference ratings (1-10)
- */
 const registerController = async (req, res) => {
   try {
     const userData = {
@@ -44,7 +43,6 @@ const registerController = async (req, res) => {
       adviceOpenness: req.body.adviceOpenness
     };
     const user = await authenticationService.register(userData);
-
     return res.json(successJsonResponse(user));
   } catch (error) {
     if (error.message === 'User already exists') return res.json(badRequestJsonResponse(error.message));
@@ -52,14 +50,51 @@ const registerController = async (req, res) => {
   }
 };
 
-/**
- * Removes user account and associated data
- * Assumes req.body contains valid username string
- */
+// ---------------------------
+// Web3 Wallet Login Controller
+// ---------------------------
+
+const web3LoginController = async (req, res) => {
+  try {
+    const { address, signature } = req.body;
+    if (!address || !signature) {
+      return res.status(400).json({ error: "Address and signature are required" });
+    }
+
+    // Check if user exists, if not create a new one
+    let user = await User.findOne({ address });
+    if (!user) {
+      user = await User.create({ address });
+    }
+
+    // Verify signature
+    const message = "Login to Lukman the defi"; // same as frontend message
+    const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+    if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+      return res.status(401).json({ error: "Signature verification failed" });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user._id, address: user.address },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    return res.json({ token });
+  } catch (err) {
+    console.error("Web3 login error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// ---------------------------
+// Other existing controllers
+// ---------------------------
+
 const deleteUserController = async (req, res) => {
   try {
     const user = await authenticationService.deleteUser(req.body);
-
     return res.json(successJsonResponse(user));
   } catch (error) {
     if (error.message === 'User not found') return res.json(notFoundJsonResponse(error.message));
@@ -67,14 +102,9 @@ const deleteUserController = async (req, res) => {
   }
 };
 
-/**
- * Updates all user's information
- * Assumes req.body contains username and at least one updatable field
- */
 const updateUserController = async (req, res) => {
   try {
     const user = await authenticationService.updateUser(req.body);
-
     return res.json(successJsonResponse(user));
   } catch (error) {
     if (error.message === 'User not found') return res.json(notFoundJsonResponse(error.message));
@@ -82,77 +112,53 @@ const updateUserController = async (req, res) => {
   }
 };
 
-/**
- * Updates user's email address
- * Assumes req.body contains username and valid newEmail string
- */
 const updateEmailController = async (req, res) => {
   try {
     const { username, newEmail } = req.body;
-    
     if (!username || !newEmail) {
       return res.json(badRequestJsonResponse('Username and new email are required'));
     }
-
     const user = await authenticationService.updateEmail(username, newEmail);
     return res.json(successJsonResponse(user));
   } catch (error) {
-    if (error.message === 'User not found') {
-      return res.json(notFoundJsonResponse(error.message));
-    }
-    else if (error.message === 'Email already exists') {
-      return res.json(badRequestJsonResponse(error.message));
-    }
+    if (error.message === 'User not found') return res.json(notFoundJsonResponse(error.message));
+    if (error.message === 'Email already exists') return res.json(badRequestJsonResponse(error.message));
     return res.json(internalErrorJsonResponse(error.message));
   }
 };
 
-/**
- * Updates user's password with new hashed value
- * Assumes req.body contains username and newPassword meeting security requirements
- */
 const updatePasswordController = async (req, res) => {
   try {
     const { username, newPassword } = req.body;
-
     if (!username || !newPassword) {
       return res.json(badRequestJsonResponse('Username and new password are required'));
     }
-
     const user = await authenticationService.updatePassword(username, newPassword);
-    
     return res.json(successJsonResponse(user));
   } catch (error) {
-    if (error.message === 'User not found') {
-      return res.json(notFoundJsonResponse(error.message));
-    }
+    if (error.message === 'User not found') return res.json(notFoundJsonResponse(error.message));
     return res.json(internalErrorJsonResponse(error.message));
   }
 };
 
-/**
- * Updates user's investment preferences
- * Assumes req.body contains username and preference values between 1-10
- */
 const updatePreferencesController = async (req, res) => {
   try {
     const { username, ...preferences } = req.body;
     if (!username) {
       return res.json(badRequestJsonResponse('Username is required'));
     }
-
     const user = await authenticationService.updatePreferences(username, preferences);
     return res.json(successJsonResponse(user));
   } catch (error) {
-    if (error.message === 'User not found') {
-      return res.json(notFoundJsonResponse(error.message));
-    }
-    if (error.message.includes('must be a number between 1 and 10')) {
-      return res.json(badRequestJsonResponse(error.message));
-    }
+    if (error.message === 'User not found') return res.json(notFoundJsonResponse(error.message));
+    if (error.message.includes('must be a number between 1 and 10')) return res.json(badRequestJsonResponse(error.message));
     return res.json(internalErrorJsonResponse(error.message));
   }
 };
+
+// ---------------------------
+// Export all controllers
+// ---------------------------
 
 module.exports = {
   loginController,
@@ -161,5 +167,6 @@ module.exports = {
   deleteUserController,
   updateEmailController,
   updatePasswordController,
-  updatePreferencesController
+  updatePreferencesController,
+  web3LoginController
 };

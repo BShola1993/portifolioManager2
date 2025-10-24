@@ -1,5 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+const  ethers  = require('ethers'); // ✅ Added this import
+const User = require('../models/User');
+const verifyToken = require('../middlewares/verifyToken');
 
 const {
   loginController,
@@ -11,10 +15,6 @@ const {
   updatePreferencesController,
 } = require('../controllers/authenticationController');
 
-const verifyToken = require('../middlewares/verifyToken');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-
 // ✅ Classic routes
 router.post('/login', loginController);
 router.post('/register', registerController);
@@ -22,9 +22,12 @@ router.post('/register', registerController);
 // ✅ Web3 wallet login (MetaMask)
 router.post('/web3login', async (req, res) => {
   try {
-    const { address } = req.body;
-    if (!address) {
-      return res.status(400).json({ success: false, message: 'Wallet address is required' });
+    const { address, signature } = req.body;
+
+    if (!address || !signature) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Address and signature are required' });
     }
 
     // ✅ Find or create user
@@ -37,8 +40,21 @@ router.post('/web3login', async (req, res) => {
       });
     }
 
-    // ✅ Generate JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // ✅ Verify signature
+    const message = 'Login to Lukman the defi'; // Must match frontend message
+    const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+    if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+      return res
+        .status(401)
+        .json({ success: false, message: 'Signature verification failed' });
+    }
+
+    // ✅ Generate JWT token
+    const token = jwt.sign(
+      { id: user._id, address: user.walletAddress },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.json({
       success: true,
@@ -48,7 +64,9 @@ router.post('/web3login', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Web3 Login Error:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res
+      .status(500)
+      .json({ success: false, message: error.message || 'Internal Server Error' });
   }
 });
 
