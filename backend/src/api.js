@@ -9,7 +9,7 @@ const app = express();
 
 // ✅ Middleware
 const allowedOrigins = [
-  'https://futurebanking-frontend.vercel.app', // ✅ your live Vercel domain
+  'https://managerport2.netlify.app', // ✅ your live Vercel domain
   'http://localhost:5173',                     // ✅ for local React dev
   'http://localhost:3000'
 ];
