@@ -6,7 +6,6 @@ import LoginPopup from "../LoginPopup/LoginPopup";
 import building from "../../assets/images/building.jpg";
 import image from "../../assets/images/image.png";
 import logo4 from "../../assets/images/logo4.png";
-
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -184,10 +183,9 @@ export default function LandingPage() {
 
         <div className="hero-image">
           {/* ✅ Use public folder path for video */}
-          <video src="/video.mp4" autoPlay loop muted playsInline />
+          <video src="/videoplayback.mp4" autoPlay loop muted playsInline />
         </div>
       </section>
-
       <section className="image-strip">
         <div className="image-quote-pair">
           <img src={building} alt="Building" />
