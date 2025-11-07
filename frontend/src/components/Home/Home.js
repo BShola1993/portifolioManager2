@@ -132,6 +132,7 @@ export default function LandingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address: account, signature }),
       });
+      console.log(res)
 
       const data = await res.json();
       if (data.token) {
