@@ -96,7 +96,8 @@ export default function LandingPage(){
                     decimals: 18,
                   },
                   rpcUrls: [
-                    "https://mainnet.infura.io/v3/8c2886764dce4f659b2b6fe8bbbcd29c",
+                    rpcUrls: ["https://sepolia.infura.io/v3/8c2886764dce4f659b2b6fe8bbbcd29c"],
+
                   ],
                   blockExplorerUrls: ["https://sepolia.etherscan.io"],
                 },
@@ -133,7 +134,9 @@ export default function LandingPage(){
     });
 
     // ✅ Dynamic API base URL
-    const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+    const API_BASE =
+  process.env.REACT_APP_API_BASE || "https://backend-production-1743.up.railway.app";
+
     const res = await fetch(`${API_BASE}/api/auth/web3login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
