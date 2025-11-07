@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.css": "/static/css/main.863000f3.css",
+    "main.js": "/static/js/main.687dd27d.js",
+    "static/media/videoplayback.mp4": "/static/media/videoplayback.41a0c43972acc262951a.mp4",
+    "static/media/bussinessmen-office.png": "/static/media/bussinessmen-office.fbcad63949c539979881.png",
+    "static/media/banker-thinking.png": "/static/media/banker-thinking.3326bc1ade162d3c568c.png",
+    "static/media/image.png": "/static/media/image.6e8202839b850798df30.png",
+    "static/media/logo4.png": "/static/media/logo4.40554045047dff710951.png",
+    "static/media/building.jpg": "/static/media/building.f8c571fa017914a67b67.jpg",
+    "index.html": "/index.html",
+    "main.863000f3.css.map": "/static/css/main.863000f3.css.map",
+    "main.687dd27d.js.map": "/static/js/main.687dd27d.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.863000f3.css",
+    "static/js/main.687dd27d.js"
+  ]
+}
