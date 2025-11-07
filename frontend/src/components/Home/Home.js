@@ -6,7 +6,6 @@ import LoginPopup from "../LoginPopup/LoginPopup";
 import building from "../../assets/images/building.jpg";
 import image from "../../assets/images/image.png";
 import logo4 from "../../assets/images/logo4.png";
-import videoFile from "../../assets/video.mp4"; // ✅ FIXED import path
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
@@ -16,7 +15,6 @@ export default function LandingPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // ✅ Check token validity on load
   useEffect(() => {
     const token = localStorage.getItem("jwt_token");
     if (token) {
@@ -36,7 +34,6 @@ export default function LandingPage() {
       }
     }
 
-    // ✅ Listen for wallet or network changes
     if (window.ethereum) {
       window.ethereum.on("accountsChanged", (accounts) =>
         setAccount(accounts[0] || null)
@@ -65,7 +62,6 @@ export default function LandingPage() {
     navigate("/report");
   };
 
-  // ✅ Connect MetaMask and switch to Sepolia if needed
   const connectWallet = async () => {
     try {
       if (!window.ethereum || !window.ethereum.isMetaMask) {
@@ -93,14 +89,8 @@ export default function LandingPage() {
                 {
                   chainId: "0xaa36a7",
                   chainName: "Sepolia Test Network",
-                  nativeCurrency: {
-                    name: "SepoliaETH",
-                    symbol: "ETH",
-                    decimals: 18,
-                  },
-                  rpcUrls: [
-                    "https://sepolia.infura.io/v3/8c2886764dce4f659b2b6fe8bbbcd29c",
-                  ],
+                  nativeCurrency: { name: "SepoliaETH", symbol: "ETH", decimals: 18 },
+                  rpcUrls: ["https://sepolia.infura.io/v3/8c2886764dce4f659b2b6fe8bbbcd29c"],
                   blockExplorerUrls: ["https://sepolia.etherscan.io"],
                 },
               ],
@@ -119,7 +109,6 @@ export default function LandingPage() {
     }
   };
 
-  // ✅ Web3 signature login with live backend
   const loginWithWallet = async () => {
     try {
       if (!account) return setError("Please connect your wallet first.");
@@ -131,7 +120,6 @@ export default function LandingPage() {
         params: [message, account],
       });
 
-      // ✅ Make sure API points to deployed backend (not localhost)
       const API_BASE =
         process.env.REACT_APP_API_BASE ||
         "https://backend-production-1743.up.railway.app";
@@ -185,28 +173,18 @@ export default function LandingPage() {
         )}
       </header>
 
-      {showLogin && (
-        <LoginPopup
-          onClose={() => setShowLogin(false)}
-          onSuccess={handleLoginSuccess}
-        />
-      )}
+      {showLogin && <LoginPopup onClose={() => setShowLogin(false)} onSuccess={handleLoginSuccess} />}
 
       <section className="hero-section">
         <div className="hero-text">
           <h2>Your Financial Future Starts Here</h2>
-          <p>
-            Upload your crypto wallet address and get a professional,
-            personalized financial report.
-          </p>
-          <p>
-            Let’s shape a brighter financial future together with trusted
-            blockchain insights.
-          </p>
+          <p>Upload your crypto wallet address and get a professional, personalized financial report.</p>
+          <p>Let’s shape a brighter financial future together with trusted blockchain insights.</p>
         </div>
 
         <div className="hero-image">
-          <video src={videoFile} autoPlay loop muted playsInline />
+          {/* ✅ Use public folder path for video */}
+          <video src="/video.mp4" autoPlay loop muted playsInline />
         </div>
       </section>
 
@@ -215,35 +193,24 @@ export default function LandingPage() {
           <img src={building} alt="Building" />
           <div className="quote-content">
             <h3>Professional Excellence</h3>
-            <p>
-              Combining Wall Street experience and blockchain analytics for your
-              crypto portfolio.
-            </p>
+            <p>Combining Wall Street experience and blockchain analytics for your crypto portfolio.</p>
           </div>
         </div>
         <div className="image-quote-pair">
           <img src={image} alt="Handshake" />
           <div className="quote-content">
             <h3>Trust & Reliability</h3>
-            <p>
-              We deliver transparency, precision, and actionable insights for
-              your DeFi journey.
-            </p>
+            <p>We deliver transparency, precision, and actionable insights for your DeFi journey.</p>
           </div>
         </div>
       </section>
 
       <section className="call-to-action">
         <h3>One Simple Step. Endless Financial Clarity.</h3>
-        <p>
-          DefiBanking is the easiest way to understand your crypto portfolio and
-          manage your financial future.
-        </p>
+        <p>DefiBanking is the easiest way to understand your crypto portfolio and manage your financial future.</p>
       </section>
 
-      <footer className="footer">
-        © {new Date().getFullYear()} DefiBanking. All rights reserved.
-      </footer>
+      <footer className="footer">© {new Date().getFullYear()} DefiBanking. All rights reserved.</footer>
     </div>
   );
 }
