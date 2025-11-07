@@ -4,10 +4,11 @@ import { jwtDecode } from "jwt-decode";
 import "./Home.css";
 import LoginPopup from "../LoginPopup/LoginPopup";
 import building from "../../assets/images/building.jpg";
-import videoFile from "frontend/public/videoplayback.mp4";
 import image from "../../assets/images/image.png";
-import logo4 from "../../assets/images/logo4.png"
-export default function LandingPage(){
+import logo4 from "../../assets/images/logo4.png";
+import videoFile from "../../assets/videos/videoplayback.mp4"; // ✅ correct import
+
+export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [account, setAccount] = useState(null);
@@ -35,12 +36,10 @@ export default function LandingPage(){
     }
 
     if (window.ethereum) {
-      window.ethereum.on("accountsChanged", (accounts) => {
-        setAccount(accounts[0] || null);
-      });
-      window.ethereum.on("chainChanged", () => {
-        window.location.reload();
-      });
+      window.ethereum.on("accountsChanged", (accounts) =>
+        setAccount(accounts[0] || null)
+      );
+      window.ethereum.on("chainChanged", () => window.location.reload());
     }
   }, []);
 
@@ -50,26 +49,20 @@ export default function LandingPage(){
     setShowLogin(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("jwt_token");
-    setIsAuthenticated(false);
-  };
-  const goToReport = async () => {
+  const goToReport = () => {
     const token = localStorage.getItem("jwt_token");
-    if (!token) {
-      setShowLogin(true);
-      return;
-    }
+    if (!token) return setShowLogin(true);
     navigate("/report");
   };
 
-  // ✅ Connect wallet and handle chain switching
+  // ✅ Connect MetaMask
   const connectWallet = async () => {
-        try {
-          if (!window.ethereum || !window.ethereum.isMetaMask) {
-          setError("MetaMask not detected or not ready. Please refresh the page.");
-          return;
-    }
+    try {
+      if (!window.ethereum || !window.ethereum.isMetaMask) {
+        setError("MetaMask not detected. Please refresh or install it.");
+        return;
+      }
+
       setIsLoading(true);
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
@@ -96,8 +89,7 @@ export default function LandingPage(){
                     decimals: 18,
                   },
                   rpcUrls: [
-                    rpcUrls: ["https://sepolia.infura.io/v3/8c2886764dce4f659b2b6fe8bbbcd29c"],
-
+                    "https://sepolia.infura.io/v3/8c2886764dce4f659b2b6fe8bbbcd29c",
                   ],
                   blockExplorerUrls: ["https://sepolia.etherscan.io"],
                 },
@@ -108,60 +100,59 @@ export default function LandingPage(){
           }
         }
       }
+
       setAccount(accounts[0]);
       setError("");
     } catch (err) {
       console.error("MetaMask connection error:", err);
-      setError(err.message || "Failed to connect wallet. Please try again.");
+      setError(err.message || "Failed to connect wallet.");
     } finally {
       setIsLoading(false);
     }
   };
-  // ✅ New: Web3 signature-based login (secure + decentralized)
+
+  // ✅ Web3 signature login
   const loginWithWallet = async () => {
-  try {
-    if (!account) {
-      setError("Please connect your wallet first.");
-      return;
+    try {
+      if (!account) return setError("Please connect your wallet first.");
+
+      setIsLoading(true);
+      const message = "Login to Lukman the defi";
+      const signature = await window.ethereum.request({
+        method: "personal_sign",
+        params: [message, account],
+      });
+
+      const API_BASE =
+        process.env.REACT_APP_API_BASE ||
+        "https://backend-production-1743.up.railway.app";
+
+      const res = await fetch(`${API_BASE}/api/auth/web3login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: account, signature }),
+      });
+
+      const data = await res.json();
+      if (data.token) {
+        handleLoginSuccess(data.token);
+        navigate("/report");
+      } else {
+        setError(data.error || "Login failed.");
+      }
+    } catch (err) {
+      console.error("Wallet login failed:", err);
+      setError("Wallet login failed. Please retry.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(true);
-
-    const message = "Login to Lukman the defi";
-    await new Promise((r) => setTimeout(r, 300)); // short delay
-    const signature = await window.ethereum.request({
-      method: "personal_sign",
-      params: [message, account]
-    });
-
-    // ✅ Dynamic API base URL
-    const API_BASE =
-  process.env.REACT_APP_API_BASE || "https://backend-production-1743.up.railway.app";
-
-    const res = await fetch(`${API_BASE}/api/auth/web3login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address: account, signature }),
-    });
-
-    const data = await res.json();
-    if (data.token) {
-      handleLoginSuccess(data.token);
-      navigate("/report");
-    } else {
-      setError(data.error || "Login failed.");
-    }
-  } catch (err) {
-    console.error("Wallet login failed:", err);
-    setError("Wallet login failed. Please retry.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   return (
     <div className="landing-page">
       <header className="header">
-        <img src={logo4} alt="My Banker" className="logo" />
+        <img src={logo4} alt="DefiBanking Logo" className="logo" />
+
         {!account ? (
           <button className="btn" onClick={connectWallet} disabled={isLoading}>
             {isLoading ? "Please wait..." : "Connect Wallet"}
@@ -176,9 +167,10 @@ export default function LandingPage(){
           </button>
         )}
 
-        {error && <p style={{ color: "red", fontSize: "0.9rem" }}>{error}</p>}
+        {error && <p className="error">{error}</p>}
+
         {account && (
-          <p style={{ fontSize: "0.9rem", color: "gray" }}>
+          <p className="wallet-text">
             ✅ Connected: {account.slice(0, 6)}...{account.slice(-4)}
           </p>
         )}
@@ -196,15 +188,13 @@ export default function LandingPage(){
           <h2>Your Financial Future Starts Here</h2>
           <p>
             Upload your crypto wallet address and get a professional,
-            personalized financial report – crafted as if by your own private
-            banker.
+            personalized financial report.
           </p>
           <p>
-            Let's shape a brighter financial future, together. Let us help you
-            make the right decisions with tailored insights you can trust.
+            Let’s shape a brighter financial future together with trusted
+            blockchain insights.
           </p>
         </div>
-
         <div className="hero-image">
           <video src={videoFile} autoPlay loop muted playsInline />
         </div>
@@ -212,14 +202,12 @@ export default function LandingPage(){
 
       <section className="image-strip">
         <div className="image-quote-pair">
-          <img src={building} alt="NYC Skyline" />
+          <img src={building} alt="Building" />
           <div className="quote-content">
             <h3>Professional Excellence</h3>
             <p>
-              With decades of experience in traditional finance and blockchain
-              technology, we bring Wall Street expertise to your crypto
-              investments. Our analysis combines time-tested financial
-              principles with cutting-edge blockchain analytics.
+              Combining Wall Street experience and blockchain analytics for your
+              crypto portfolio.
             </p>
           </div>
         </div>
@@ -228,20 +216,18 @@ export default function LandingPage(){
           <div className="quote-content">
             <h3>Trust & Reliability</h3>
             <p>
-              We believe in building lasting relationships through transparency
-              and reliability. Our automated analysis provides the same level of
-              insight you'd expect from a private banking relationship, available
-              24/7.
+              We deliver transparency, precision, and actionable insights for
+              your DeFi journey.
             </p>
           </div>
         </div>
       </section>
+
       <section className="call-to-action">
         <h3>One Simple Step. Endless Financial Clarity.</h3>
         <p>
-           DefiBanking is the easiest way to understand your crypto portfolio.
-          Whether you're managing assets or exploring investments, our report
-          gives you the insights you need.
+          DefiBanking is the easiest way to understand your crypto portfolio and
+          manage your financial future.
         </p>
       </section>
 
