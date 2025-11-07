@@ -26,8 +26,7 @@ app.use(express.json());
 connectDB();
 
 // ✅ Use PORT from .env (fallback 5000)
-const PORT = process.env.PORT || 5000;
-
+const PORT = process.env.PORT;
 // ✅ Routes
 const authRoutes = require('./routes/authenticationRoute');
 const userRoutes = require('./routes/userRoutes');
