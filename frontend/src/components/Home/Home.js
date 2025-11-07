@@ -6,7 +6,7 @@ import LoginPopup from "../LoginPopup/LoginPopup";
 import building from "../../assets/images/building.jpg";
 import image from "../../assets/images/image.png";
 import logo4 from "../../assets/images/logo4.png";
-import videoFile from "../../assets/videos/videoplayback.mp4"; // ✅ FIXED import path
+import videoFile from "../../assets/video.mp4"; // ✅ FIXED import path
 
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
